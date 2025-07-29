@@ -43,14 +43,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 selectedDate = new Date(year, month, i);
                 modalTitle.textContent = `${year}年 ${month + 1}月 ${i}日`;
                 eventContentInput.value = events[dateKey] || '';
-                eventModal.style.display = 'block';
+                eventModal.classList.add('show-modal');
             });
             calendarGrid.appendChild(dayCell);
         }
     }
 
     closeBtn.addEventListener('click', () => {
-        eventModal.style.display = 'none';
+        eventModal.classList.remove('show-modal');
     });
 
     saveEventBtn.addEventListener('click', () => {
@@ -66,12 +66,12 @@ document.addEventListener('DOMContentLoaded', () => {
             delete events[dateKey];
         }
         renderCalendar();
-        eventModal.style.display = 'none';
+        eventModal.classList.remove('show-modal');
     });
 
     window.addEventListener('click', (e) => {
         if (e.target == eventModal) {
-            eventModal.style.display = 'none';
+            eventModal.classList.remove('show-modal');
         }
     });
 
