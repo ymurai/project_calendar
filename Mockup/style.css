@@ -1,15 +1,22 @@
 body {
-    font-family: sans-serif;
+    font-family: 'Noto Sans JP', sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
     margin: 0;
+    background-color: #f0f0f0; /* 明るいグレーの背景 */
+    color: #333; /* 基本的なテキストの色 */
 }
 
 .container {
     width: 90%;
-    max-width: 600px;
-    margin-top: 100px;
+    max-width: 800px; /* 最大幅を広げてゆとりを持たせる */
+    margin-top: 40px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 影を強調 */
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .calendar-header {
@@ -17,69 +24,206 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #0055a5; /* デジタル庁の青色を意識 */
+}
+
+.calendar-header h2 {
+    margin: 0;
+    font-size: 1.8em; /* フォントサイズを大きく */
+    color: #0055a5;
+}
+
+.calendar-header button {
+    background-color: #0055a5; /* デジタル庁の青色 */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+.calendar-header button:hover {
+    background-color: #003f7a;
 }
 
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
+    gap: 8px; /* グリッド間のスペースを広げる */
+}
+
+.calendar-grid div:nth-child(1), /* 日曜日 */
+.calendar-grid div:nth-child(8), /* 日曜日 */
+.calendar-grid div:nth-child(15), /* 日曜日 */
+.calendar-grid div:nth-child(22), /* 日曜日 */
+.calendar-grid div:nth-child(29), /* 日曜日 */
+.calendar-grid div:nth-child(36) { /* 日曜日 */
+    color: #d32f2f; /* 赤色 */
+}
+
+.calendar-grid div:nth-child(7), /* 土曜日 */
+.calendar-grid div:nth-child(14), /* 土曜日 */
+.calendar-grid div:nth-child(21), /* 土曜日 */
+.calendar-grid div:nth-child(28), /* 土曜日 */
+.calendar-grid div:nth-child(35), /* 土曜日 */
+.calendar-grid div:nth-child(42) { /* 土曜日 */
+    color: #1976d2; /* 青色 */
 }
 
 .calendar-day {
-    border: 1px solid #ccc;
-    padding: 10px;
+    border: 1px solid #e0e0e0; /* 薄いグレーのボーダー */
+    padding: 15px 10px; /* パディングを増やす */
     text-align: center;
     cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    min-height: 80px; /* 各セルの高さを確保 */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    font-size: 1.1em;
 }
 
 .calendar-day:hover {
-    background-color: #f0f0f0;
+    background-color: #e8f0fe; /* ホバー時の背景色 */
+    border-color: #a7d1ff; /* ホバー時のボーダー色 */
 }
 
 .event-day {
-    background-color: #e0e0e0;
+    background-color: #e0f7fa; /* イベントがある日の背景色 */
+    border-color: #00bcd4; /* イベントがある日のボーダー色 */
 }
 
 .modal {
-    display: none;
     position: fixed;
-    z-index: 1;
+    z-index: 1000; /* 最前面に表示 */
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0,0,0,0.4);
+    background-color: rgba(0, 0, 0, 0.6); /* 半透明の暗い背景 */
+    justify-content: center;
+    align-items: center;
+
+    /* アニメーションのためのプロパティ */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease; /* フェードイン/アウト */
+}
+
+.modal.show-modal {
+    opacity: 1;
+    visibility: visible;
 }
 
 .modal-content {
-    background-color: #fefefe;
+    background-color: #fff;
     margin: 15% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    max-width: 400px;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+
+    /* アニメーションのためのプロパティ */
+    transform: translateY(20px); /* 初期位置を少し下に */
+    transition: transform 0.3s ease; /* スライドアップ */
+}
+
+.modal.show-modal .modal-content {
+    transform: translateY(0); /* 表示時に元の位置に */
 }
 
 .close-btn {
-    color: #aaa;
+    color: #888;
     float: right;
-    font-size: 28px;
+    font-size: 32px;
     font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    cursor: pointer;
 }
 
 .close-btn:hover,
 .close-btn:focus {
-    color: black;
+    color: #333;
     text-decoration: none;
-    cursor: pointer;
+}
+
+#modal-title {
+    font-size: 1.5em;
+    color: #0055a5;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
 }
 
 #event-content-input {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
+    width: calc(100% - 20px); /* パディングを考慮 */
+    padding: 10px;
+    margin-bottom: 20px;
     box-sizing: border-box;
-    height: 100px;
+    height: 120px; /* 高さを増やす */
     resize: vertical;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+#save-event-btn {
+    background-color: #0055a5;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: background-color 0.3s ease;
+    width: 100%; /* ボタンを幅いっぱいに */
+}
+
+#save-event-btn:hover {
+    background-color: #003f7a;
+}
+
+/* レスポンシブデザインの調整 */
+@media (max-width: 768px) {
+    .calendar-header h2 {
+        font-size: 1.5em;
+    }
+
+    .calendar-header button {
+        padding: 8px 12px;
+        font-size: 0.9em;
+    }
+
+    .calendar-day {
+        padding: 10px 5px;
+        min-height: 60px;
+        font-size: 1em;
+    }
+
+    .modal-content {
+        padding: 20px;
+    }
+
+    #modal-title {
+        font-size: 1.3em;
+    }
+
+    #event-content-input {
+        height: 100px;
+    }
+
+    #save-event-btn {
+        padding: 10px 15px;
+        font-size: 1em;
+    }
 }
