@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カレンダー</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="calendar-header">
+            <button id="prev-month-btn">&lt;</button>
+            <h2 id="current-month-year"></h2>
+            <button id="next-month-btn">&gt;</button>
+        </div>
+        <div class="calendar-grid" id="calendar-grid">
+        </div>
+    </div>
+
+    <div id="event-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="modal-title"></h3>
+            <textarea id="event-content-input" placeholder="内容"></textarea>
+            <button id="save-event-btn">保存</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
