@@ -1,113 +1,139 @@
 
 const express = require('express');
+const { body, param, validationResult } = require('express-validator');
 const app = express();
 const version = 'v1';
 const port = 3000;
-const { db, getAllEvents, addEvent, getEventById, getEventByDate, updateEvent, deleteEvent } = require('./database/db');
+const { getAllEvents, addEvent, getEventById, getEventByDate, updateEvent, deleteEvent } = require('./database/db');
 
 app.use(express.json());
 
+// Middleware for validation
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  next();
+};
+
+// Utility function to handle database responses
+const createResponseHandler = (res, successStatus, notFoundMessage) => {
+  return (err, result) => {
+    if (err) {
+      return res.status(500).send(err.message);
+    }
+    if (!result || (result.changes !== undefined && result.changes === 0)) {
+      return res.status(404).json({
+        error: {
+          code: "NOT_FOUND",
+          message: notFoundMessage || "Resource not found."
+        }
+      });
+    }
+    if (successStatus === 204) {
+        return res.status(204).send();
+    }
+    res.status(successStatus).json(result);
+  };
+};
+
+// Get all events
 app.get(`/api/${version}/events`, (req, res) => {
-  getAllEvents((err, rows) => {
-    if (err) {
-      res.status(500).send(err.message);
-      return;
-    }
-    res.json(rows);
-  });
+  getAllEvents(createResponseHandler(res, 200));
 });
 
-app.post(`/api/${version}/events`, (req, res) => {
-  const { event_date, content } = req.body;
-  addEvent(event_date, content, (err, result) => {
-    if (err) {
-      res.status(500).send(err.message);
-      return;
-    }
-    res.status(201).json(result);
-  });
-});
+// Add a new event
+app.post(
+  `/api/${version}/events`,
+  [
+    body('event_date').isDate({ format: 'YYYY-MM-DD' }).withMessage('event_date must be in YYYY-MM-DD format'),
+    body('content').isString().notEmpty().withMessage('content is required'),
+  ],
+  validate,
+  (req, res) => {
+    const { event_date, content } = req.body;
+    addEvent(event_date, content, createResponseHandler(res, 201));
+  }
+);
 
-app.get(`/api/${version}/events/:id`, (req, res) => {
-  const { id } = req.params;
-  getEventById(id, (err, row) => {
-    if (err) {
-      res.status(500).send(err.message);
-      return;
+// Get an event by ID
+app.get(
+  `/api/${version}/events/:id`,
+  [
+    param('id').isInt({ min: 1 }).withMessage('ID must be a positive integer'),
+  ],
+  validate,
+  (req, res) => {
+    const { id } = req.params;
+    getEventById(id, createResponseHandler(res, 200, `Event with ID ${id} not found.`));
+  }
+);
+
+// Get an event by date
+app.get(
+    `/api/${version}/events/by-date/:date`,
+    [
+        param('date').isDate({ format: 'YYYY-MM-DD' }).withMessage('date must be in YYYY-MM-DD format'),
+    ],
+    validate,
+    (req, res) => {
+        const { date } = req.params;
+        getEventByDate(date, createResponseHandler(res, 200, `Event for date ${date} not found.`));
     }
-    if (!row) {
-      res.status(404).json({
-        error: {
-          code: "NOT_FOUND",
-          message: `Event with ID ${id} not found.`
+);
+
+// Update an event
+app.put(
+  `/api/${version}/events/:id`,
+  [
+    param('id').isInt({ min: 1 }).withMessage('ID must be a positive integer'),
+    body('event_date').optional().isDate({ format: 'YYYY-MM-DD' }).withMessage('event_date must be in YYYY-MM-DD format'),
+    body('content').optional().isString().notEmpty().withMessage('content cannot be empty'),
+  ],
+  validate,
+  (req, res) => {
+    const { id } = req.params;
+    getEventById(id, (err, originalEvent) => {
+        if (err) {
+            return res.status(500).send(err.message);
         }
-      });
-      return;
-    }
-    res.json(row);
-  });
-});
-
-app.get(`/api/${version}/events/by-date/:date`, (req, res) => {
-  const { date } = req.params;
-  getEventByDate(date, (err, row) => {
-    if (err) {
-      res.status(500).send(err.message);
-      return;
-    }
-    if (!row) {
-      res.status(404).json({
-        error: {
-          code: "NOT_FOUND",
-          message: `Event for date ${date} not found.`
+        if (!originalEvent) {
+            return res.status(404).json({
+                error: {
+                    code: "NOT_FOUND",
+                    message: `Event with ID ${id} not found.`
+                }
+            });
         }
-      });
-      return;
-    }
-    res.json(row);
-  });
-});
 
-app.put(`/api/${version}/events/:id`, (req, res) => {
-  const { id } = req.params;
-  const { content } = req.body;
-  updateEvent(id, content, (err, row) => {
-    if (err) {
-      res.status(500).send(err.message);
-      return;
-    }
-    if (!row) {
-      res.status(404).json({
-        error: {
-          code: "NOT_FOUND",
-          message: `Event with ID ${id} not found.`
-        }
-      });
-      return;
-    }
-    res.json(row);
-  });
-});
+        const { event_date = originalEvent.event_date, content = originalEvent.content } = req.body;
 
-app.delete(`/api/${version}/events/:id`, (req, res) => {
-  const { id } = req.params;
-  deleteEvent(id, (err, result) => {
-    if (err) {
-      res.status(500).send(err.message);
-      return;
-    }
-    if (result.changes === 0) {
-      res.status(404).json({
-        error: {
-          code: "NOT_FOUND",
-          message: `Event with ID ${id} not found.`
+        if (req.body.event_date === undefined && req.body.content === undefined) {
+            return res.status(400).json({
+                errors: [{
+                    msg: 'At least one field (event_date or content) must be provided for update'
+                }]
+            });
         }
-      });
-      return;
-    }
-    res.status(204).send();
-  });
-});
+
+        updateEvent(id, event_date, content, createResponseHandler(res, 200, `Event with ID ${id} not found.`));
+    });
+  }
+);
+
+// Delete an event
+app.delete(
+  `/api/${version}/events/:id`,
+  [
+    param('id').isInt({ min: 1 }).withMessage('ID must be a positive integer'),
+  ],
+  validate,
+  (req, res) => {
+    const { id } = req.params;
+    deleteEvent(id, createResponseHandler(res, 204, `Event with ID ${id} not found.`));
+  }
+);
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);
