@@ -16,6 +16,6 @@ $ npm install
 #### 実行
 ```
 $ cd Server
-$ node index.js
+$ node index.js &
 ```
 
