@@ -1,6 +1,22 @@
 
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database(__dirname + '/calendar.db');
+
+const dbPath = process.env.NODE_ENV === 'test' ? ':memory:' : __dirname + '/calendar.db';
+const db = new sqlite3.Database(dbPath);
+
+function initializeDatabase(callback) {
+    db.serialize(() => {
+        db.run(`
+            CREATE TABLE IF NOT EXISTS events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                event_date TEXT NOT NULL,
+                content TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        `, callback);
+    });
+}
 
 function getAllEvents(callback) {
   db.all("SELECT * FROM events", [], callback);
@@ -40,6 +56,7 @@ function deleteEvent(id, callback) {
 
 module.exports = {
   db,
+  initializeDatabase,
   getAllEvents,
   addEvent,
   getEventById,
