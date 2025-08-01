@@ -12,10 +12,30 @@
 ## エラーハンドリング
 APIリクエストでエラーが発生した場合、以下の形式でエラーレスポンスを返します。
 
+### バリデーションエラー (400 Bad Request)
+入力値の検証に失敗した場合、以下の形式でエラーが返されます。
+
+```json
+{
+  "errors": [
+    {
+      "type": "field",
+      "value": "無効な値",
+      "msg": "エラーメッセージ",
+      "path": "フィールド名",
+      "location": "body"
+    }
+  ]
+}
+```
+
+### その他のエラー
+リソースが見つからない場合やサーバー内部エラーの場合、以下の形式でエラーが返されます。
+
 ```json
 {
   "error": {
-    "code": "エラーコード (例: INVALID_INPUT, NOT_FOUND)",
+    "code": "エラーコード (例: NOT_FOUND)",
     "message": "エラーメッセージの詳細"
   }
 }
@@ -31,7 +51,7 @@ APIリクエストでエラーが発生した場合、以下の形式でエラ�
 
 ## エンドポイント一覧
 
-### 1. イベントの取得 (GET /events)
+### 1. イベントの全件取得 (GET /events)
 
 #### 説明
 登録されているすべてのイベント、または指定された期間のイベントを取得します。
@@ -72,7 +92,10 @@ APIリクエストでエラーが発生した場合、以下の形式でエラ�
 *   **メソッド**: `POST`
 *   **パス**: `/events`
 *   **ヘッダー**: `Content-Type: application/json`
-*   **ボディ**:
+*   **ボディ (必須項目)**:
+    *   `event_date` (string, `YYYY-MM-DD`形式)
+    *   `content` (string, 空でないこと)
+
 ```json
 {
   "event_date": "2025-09-01",
@@ -91,18 +114,17 @@ APIリクエストでエラーが発生した場合、以下の形式でエラ�
 }
 ```
 
-#### エラー例 (400 Bad Request)
-`event_date`が既に存在する場合:
-```json
-{
-  "error": {
-    "code": "DUPLICATE_ENTRY",
-    "message": "Event for 2025-09-01 already exists."
-  }
-}
-```
+-#### エラー例 (400 Bad Request)
+-`event_date`が既に存在する場合:
+-```json
+-{
+-  "error": {
+-    "code": "DUPLICATE_ENTRY",
+-    "message": "Event for 2025-09-01 already exists."
+-  }
+-}
 
-### 3. 特定イベントの取得 (GET /events/{id})
+### 3. 特定イベントの取得 (ID) (GET /events/{id})
 
 #### 説明
 指定されたIDのイベントを取得します。
@@ -110,6 +132,8 @@ APIリクエストでエラーが発生した場合、以下の形式でエラ�
 #### リクエスト
 *   **メソッド**: `GET`
 *   **パス**: `/events/{id}` (例: `/events/1`)
+*   **パスパラメータ**:
+    *   `id` (integer, 1以上の整数)
 
 #### レスポンス (200 OK)
 ```json
@@ -122,17 +146,7 @@ APIリクエストでエラーが発生した場合、以下の形式でエラ�
 }
 ```
 
-#### エラー例 (404 Not Found)
-```json
-{
-  "error": {
-    "code": "NOT_FOUND",
-    "message": "Event with ID 999 not found."
-  }
-}
-```
-
-### 4. 特定イベントの取得 (GET /events/by-date/{date})
+### 4. 特定イベントの取得 (日付) (GET /events/by-date/{date})
 
 #### 説明
 指定された日付のイベントを取得します。
@@ -140,6 +154,8 @@ APIリクエストでエラーが発生した場合、以下の形式でエラ�
 #### リクエスト
 *   **メソッド**: `GET`
 *   **パス**: `/events/by-date/{date}` (例: `/events/by-date/2025-07-29`)
+*   **パスパラメータ**:
+    *   `date` (string, `YYYY-MM-DD`形式)
 
 #### レスポンス (200 OK)
 ```json
@@ -152,28 +168,24 @@ APIリクエストでエラーが発生した場合、以下の形式でエラ�
 }
 ```
 
-#### エラー例 (404 Not Found)
-```json
-{
-  "error": {
-    "code": "NOT_FOUND",
-    "message": "Event for date 2025-07-29 not found."
-  }
-}
-```
-
 ### 5. 特定イベントの更新 (PUT /events/{id})
 
 #### 説明
-指定されたIDのイベントを更新します。
+指定されたIDのイベントを更新します。`event_date`と`content`の少なくとも一方は必須です。
 
 #### リクエスト
 *   **メソッド**: `PUT`
 *   **パス**: `/events/{id}` (例: `/events/1`)
+*   **パスパラメータ**:
+    *   `id` (integer, 1以上の整数)
 *   **ヘッダー**: `Content-Type: application/json`
-*   **ボディ**:
+*   **ボディ (任意項目)**:
+    *   `event_date` (string, `YYYY-MM-DD`形式)
+    *   `content` (string, 空でないこと)
+
 ```json
 {
+  "event_date": "2025-07-30",
   "content": "重要な会議"
 }
 ```
@@ -182,20 +194,10 @@ APIリクエストでエラーが発生した場合、以下の形式でエラ�
 ```json
 {
   "id": 1,
-  "event_date": "2025-07-29",
+  "event_date": "2025-07-30",
   "content": "重要な会議",
   "created_at": "2025-07-29T10:00:00Z",
   "updated_at": "2025-07-29T11:30:00Z"
-}
-```
-
-#### エラー例 (404 Not Found)
-```json
-{
-  "error": {
-    "code": "NOT_FOUND",
-    "message": "Event with ID 999 not found."
-  }
 }
 ```
 
@@ -207,16 +209,9 @@ APIリクエストでエラーが発生した場合、以下の形式でエラ�
 #### リクエスト
 *   **メソッド**: `DELETE`
 *   **パス**: `/events/{id}` (例: `/events/1`)
+*   **パスパラメータ**:
+    *   `id` (integer, 1以上の整数)
 
 #### レスポンス (204 No Content)
 レスポンスボディはありません。
 
-#### エラー例 (404 Not Found)
-```json
-{
-  "error": {
-    "code": "NOT_FOUND",
-    "message": "Event with ID 999 not found."
-  }
-}
-```

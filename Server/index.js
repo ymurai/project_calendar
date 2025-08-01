@@ -1,6 +1,6 @@
 
 const express = require('express');
-const { body, param, validationResult } = require('express-validator');
+const { body, param, query, validationResult } = require('express-validator');
 const app = express();
 const version = 'v1';
 const port = 3000;
@@ -21,6 +21,14 @@ const validate = (req, res, next) => {
 const createResponseHandler = (res, successStatus, notFoundMessage) => {
   return (err, result) => {
     if (err) {
+      if (err.code === 'SQLITE_CONSTRAINT' && err.message.includes('UNIQUE constraint failed: events.event_date')) {
+        return res.status(409).json({
+          error: {
+            code: "DUPLICATE_ENTRY",
+            message: "Event for this date already exists."
+          }
+        });
+      }
       return res.status(500).send(err.message);
     }
     if (!result || (result.changes !== undefined && result.changes === 0)) {
@@ -38,10 +46,19 @@ const createResponseHandler = (res, successStatus, notFoundMessage) => {
   };
 };
 
-// Get all events
-app.get(`/api/${version}/events`, (req, res) => {
-  getAllEvents(createResponseHandler(res, 200));
-});
+// Get all events, with optional date filtering
+app.get(
+    `/api/${version}/events`,
+    [
+        query('start_date').optional().isDate({ format: 'YYYY-MM-DD' }).withMessage('start_date must be in YYYY-MM-DD format'),
+        query('end_date').optional().isDate({ format: 'YYYY-MM-DD' }).withMessage('end_date must be in YYYY-MM-DD format'),
+    ],
+    validate,
+    (req, res) => {
+        const { start_date, end_date } = req.query;
+        getAllEvents(start_date, end_date, createResponseHandler(res, 200));
+    }
+);
 
 // Add a new event
 app.post(

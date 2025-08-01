@@ -9,7 +9,7 @@ function initializeDatabase(callback) {
         db.run(`
             CREATE TABLE IF NOT EXISTS events (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                event_date TEXT NOT NULL,
+                event_date TEXT NOT NULL UNIQUE,
                 content TEXT NOT NULL,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -18,8 +18,22 @@ function initializeDatabase(callback) {
     });
 }
 
-function getAllEvents(callback) {
-  db.all("SELECT * FROM events", [], callback);
+function getAllEvents(startDate, endDate, callback) {
+  let query = "SELECT * FROM events";
+  const params = [];
+
+  if (startDate && endDate) {
+    query += " WHERE event_date BETWEEN ? AND ?";
+    params.push(startDate, endDate);
+  } else if (startDate) {
+    query += " WHERE event_date >= ?";
+    params.push(startDate);
+  } else if (endDate) {
+    query += " WHERE event_date <= ?";
+    params.push(endDate);
+  }
+
+  db.all(query, params, callback);
 }
 
 function addEvent(event_date, content, callback) {

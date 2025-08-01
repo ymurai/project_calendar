@@ -48,6 +48,24 @@ describe('Events API', () => {
     expect(res.statusCode).toEqual(400);
   });
 
+  it('should not create an event with a duplicate event_date', async () => {
+    await request(app)
+      .post('/api/v1/events')
+      .send({
+        event_date: '2025-08-01',
+        content: 'First event'
+      });
+
+    const res = await request(app)
+      .post('/api/v1/events')
+      .send({
+        event_date: '2025-08-01',
+        content: 'Second event'
+      });
+    expect(res.statusCode).toEqual(409);
+    expect(res.body.error.code).toBe('DUPLICATE_ENTRY');
+  });
+
   it('should get an event by id', async () => {
     // First, create an event
     const postRes = await request(app)
@@ -87,6 +105,19 @@ describe('Events API', () => {
       });
     expect(putRes.statusCode).toEqual(200);
     expect(putRes.body.content).toBe('Updated content');
+  });
+
+  it('should get events within a date range', async () => {
+    // Create some events
+    await request(app).post('/api/v1/events').send({ event_date: '2025-08-10', content: 'Event 1' });
+    await request(app).post('/api/v1/events').send({ event_date: '2025-08-15', content: 'Event 2' });
+    await request(app).post('/api/v1/events').send({ event_date: '2025-08-20', content: 'Event 3' });
+
+    // Get events within the range
+    const res = await request(app).get('/api/v1/events?start_date=2025-08-12&end_date=2025-08-18');
+    expect(res.statusCode).toEqual(200);
+    expect(res.body.length).toBe(1);
+    expect(res.body[0].content).toBe('Event 2');
   });
 
   it('should delete an event', async () => {
