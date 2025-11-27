@@ -9,9 +9,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveEventBtn = document.getElementById('save-event-btn');
     const closeBtn = document.querySelector('.close-btn');
 
+    const BASE_URL = 'http://localhost:3000/api';
+
     let currentDate = new Date();
     let selectedDate = null;
-    const events = {}; // Store events in an object
+    let events = {}; // Store events in an object
+
+    async function fetchEvents() {
+        try {
+            const response = await fetch(`${BASE_URL}/events`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            events = {}; // Clear existing events
+            data.forEach(event => {
+                const startDate = new Date(event.start);
+                const dateKey = `${startDate.getFullYear()}-${startDate.getMonth() + 1}-${startDate.getDate()}`;
+                events[dateKey] = event.title; // Store title for now
+            });
+            renderCalendar();
+        } catch (error) {
+            console.error('Error fetching events:', error);
+        }
+    }
 
     function renderCalendar() {
         calendarGrid.innerHTML = '';
@@ -53,19 +74,35 @@ document.addEventListener('DOMContentLoaded', () => {
         eventModal.classList.remove('show-modal');
     });
 
-    saveEventBtn.addEventListener('click', () => {
+    saveEventBtn.addEventListener('click', async () => {
         const eventContent = eventContentInput.value;
         const year = selectedDate.getFullYear();
         const month = selectedDate.getMonth();
         const day = selectedDate.getDate();
-        const dateKey = `${year}-${month + 1}-${day}`;
+        const dateString = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
 
         if (eventContent) {
-            events[dateKey] = eventContent;
-        } else {
-            delete events[dateKey];
+            try {
+                const response = await fetch(`${BASE_URL}/events`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: eventContent,
+                        start: `${dateString}T00:00:00Z`,
+                        end: `${dateString}T23:59:59Z`
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                await fetchEvents(); // Re-fetch events after saving
+            } catch (error) {
+                console.error('Error saving event:', error);
+            }
         }
-        renderCalendar();
         eventModal.classList.remove('show-modal');
     });
 
@@ -77,13 +114,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     prevMonthBtn.addEventListener('click', () => {
         currentDate.setMonth(currentDate.getMonth() - 1);
-        renderCalendar();
+        fetchEvents(); // Fetch events for new month
     });
 
     nextMonthBtn.addEventListener('click', () => {
         currentDate.setMonth(currentDate.getMonth() + 1);
-        renderCalendar();
+        fetchEvents(); // Fetch events for new month
     });
 
-    renderCalendar();
-});
+    fetchEvents(); // Initial fetch of events

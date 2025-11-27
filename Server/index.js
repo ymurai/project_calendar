@@ -1,12 +1,19 @@
 
 const express = require('express');
+const cors = require('cors');
 const { body, param, query, validationResult } = require('express-validator');
 const app = express();
 const version = 'v1';
-const port = 3000;
+const port = process.env.PORT || 3000;
 const { getAllEvents, addEvent, getEventById, getEventByDate, updateEvent, deleteEvent } = require('./database/db');
 
 app.use(express.json());
+// CORS (allow only necessary origins)
+app.use(cors({
+  origin: ['http://localhost:5173'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type'],
+}));
 
 // Middleware for validation
 const validate = (req, res, next) => {
