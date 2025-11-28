@@ -49,6 +49,15 @@ cd Server
 npm start
 ```
 
+## フロントエンドの起動（Site/）
+- バックエンドは`http://localhost:3000`で起動しておいてください。
+- CORSの許可オリジンは`http://localhost:5173`に設定済みのため、以下のように静的サーバーで配信します。
+```zsh
+cd Site
+python3 -m http.server 5173
+# ブラウザで http://localhost:5173 を開く
+```
+
 ## API一覧（v1）
 - `GET /api/v1/events`: イベント一覧取得（クエリ`start_date`,`end_date`で範囲指定可）。
 - `POST /api/v1/events`: イベント作成（`event_date: YYYY-MM-DD`, `content: string`）。重複日は409。

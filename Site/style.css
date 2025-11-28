@@ -1,0 +1,225 @@
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.container {
+  width: 90%;
+  max-width: 800px;
+  margin-top: 40px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #0055a5;
+}
+
+.calendar-header h2 {
+  margin: 0;
+  font-size: 1.8em;
+  color: #0055a5;
+}
+
+.calendar-header button {
+  background-color: #0055a5;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s ease;
+}
+
+.calendar-header button:hover {
+  background-color: #003f7a;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.calendar-grid div:nth-child(1),
+.calendar-grid div:nth-child(8),
+.calendar-grid div:nth-child(15),
+.calendar-grid div:nth-child(22),
+.calendar-grid div:nth-child(29),
+.calendar-grid div:nth-child(36) {
+  color: #d32f2f;
+}
+
+.calendar-grid div:nth-child(7),
+.calendar-grid div:nth-child(14),
+.calendar-grid div:nth-child(21),
+.calendar-grid div:nth-child(28),
+.calendar-grid div:nth-child(35),
+.calendar-grid div:nth-child(42) {
+  color: #1976d2;
+}
+
+.calendar-day {
+  border: 1px solid #e0e0e0;
+  padding: 15px 10px;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  font-size: 1.1em;
+}
+
+.calendar-day:hover {
+  background-color: #e8f0fe;
+  border-color: #a7d1ff;
+}
+
+.event-day {
+  background-color: #ffe9cc; /* 予定あり: 柔らかいオレンジ */
+  border-color: #ffa726;
+}
+
+.today {
+  background-color: #e8f0fe; /* 当日: 淡いブルー */
+  border-color: #90caf9;
+}
+
+.modal {
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal.show-modal {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 15% auto;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+}
+
+.modal.show-modal .modal-content {
+  transform: translateY(0);
+}
+
+.close-btn {
+  color: #888;
+  float: right;
+  font-size: 32px;
+  font-weight: bold;
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  cursor: pointer;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+  color: #333;
+  text-decoration: none;
+}
+
+#modal-title {
+  font-size: 1.5em;
+  color: #0055a5;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+#event-content-input {
+  width: calc(100% - 20px);
+  padding: 10px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+  height: 120px;
+  resize: vertical;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1em;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.modal-actions .primary {
+  background-color: #0055a5;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.1em;
+  transition: background-color 0.3s ease;
+  flex: 1;
+}
+
+.modal-actions .primary:hover {
+  background-color: #003f7a;
+}
+
+.modal-actions .danger {
+  background-color: #c62828;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.1em;
+  transition: background-color 0.3s ease;
+}
+
+.modal-actions .danger:hover {
+  background-color: #a41616;
+}
+
+@media (max-width: 768px) {
+  .calendar-header h2 { font-size: 1.5em; }
+  .calendar-header button { padding: 8px 12px; font-size: 0.9em; }
+  .calendar-day { padding: 10px 5px; min-height: 60px; font-size: 1em; }
+  .modal-content { padding: 20px; }
+  #modal-title { font-size: 1.3em; }
+  #event-content-input { height: 100px; }
+  .modal-actions .primary, .modal-actions .danger { font-size: 1em; padding: 10px 15px; }
+}
