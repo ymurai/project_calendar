@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>カレンダー</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="calendar-header">
+      <button id="prev-month-btn" aria-label="前の月">&lt;</button>
+      <h2 id="current-month-year" aria-live="polite"></h2>
+      <button id="next-month-btn" aria-label="次の月">&gt;</button>
+    </div>
+    <div class="calendar-grid" id="calendar-grid"></div>
+  </div>
+
+  <div id="event-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-content">
+      <span class="close-btn" role="button" aria-label="閉じる">&times;</span>
+      <h3 id="modal-title"></h3>
+      <textarea id="event-content-input" placeholder="内容"></textarea>
+      <div class="modal-actions">
+        <button id="delete-event-btn" class="danger" title="イベント削除">削除</button>
+        <button id="save-event-btn" class="primary" title="イベント保存">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
